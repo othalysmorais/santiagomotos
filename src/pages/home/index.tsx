@@ -47,6 +47,7 @@ export function Home() {
     const urlQuery = searchParams.get('q') || '';
 
     const [cars, setCars] = useState<CarProps[]>([]);
+    const [loading, setLoading] = useState(true);
     const [loadedImages, setLoadedImages] = useState<string[]>([]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sortBy, setSortBy] = useState<SortOption>('recent');
@@ -63,27 +64,31 @@ export function Home() {
 
     useEffect(() => {
         setLoadedImages([]);
-        urlQuery ? searchByName(urlQuery) : loadAllCars();
+        setLoading(true);
+        const fn = urlQuery ? searchByName(urlQuery) : loadAllCars();
+        fn.finally(() => setLoading(false));
     }, [urlQuery]);
 
     async function loadAllCars() {
         const q = query(collection(db, "cars"), orderBy("created", "desc"));
-        getDocs(q).then((snap) => setCars(snap.docs.map(d => ({
+        const snap = await getDocs(q);
+        setCars(snap.docs.map(d => ({
             id: d.id, name: d.data().name, model: d.data().model || '',
             year: d.data().year, price: d.data().price, city: d.data().city,
             km: d.data().km, images: d.data().images, uid: d.data().uid,
-        }))));
+        })));
     }
 
     async function searchByName(name: string) {
         const q = query(collection(db, "cars"),
             where("name", ">=", name.toUpperCase()),
             where("name", "<=", name.toUpperCase() + "\uf8ff"));
-        getDocs(q).then((snap) => setCars(snap.docs.map(d => ({
+        const snap = await getDocs(q);
+        setCars(snap.docs.map(d => ({
             id: d.id, name: d.data().name, model: d.data().model || '',
             year: d.data().year, price: d.data().price, city: d.data().city,
             km: d.data().km, images: d.data().images, uid: d.data().uid,
-        }))));
+        })));
     }
 
     const uniqueCities = useMemo(
@@ -271,7 +276,21 @@ export function Home() {
                         </div>
                     </div>
 
-                    {displayedCars.length > 0 ? (
+                    {loading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <div key={i} className="bg-white dark:bg-[#1e1e1e] rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 shadow-sm">
+                                    <div className="w-full h-48 bg-gray-200 dark:bg-zinc-800 animate-pulse" />
+                                    <div className="p-4 space-y-3">
+                                        <div className="h-4 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse w-3/4" />
+                                        <div className="h-3 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse w-1/2" />
+                                        <div className="h-6 bg-gray-200 dark:bg-zinc-700 rounded animate-pulse w-1/3 mt-2" />
+                                        <div className="h-9 bg-gray-200 dark:bg-zinc-700 rounded-xl animate-pulse" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : displayedCars.length > 0 ? (
                         <main className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                             {displayedCars.map(car => (
                                 <article
