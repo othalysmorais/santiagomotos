@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@import 'swiper/css';
+@import 'swiper/css/navigation';
+@import 'swiper/css/pagination';
+@import 'swiper/css/scrollbar';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Light mode ─────────────────────────────── */
+body {
+  background-color: #f4f4f5;
+  color: #111111;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ─── Dark mode ──────────────────────────────── */
+html.dark body {
+  background-color: #141414;
+  color: #f0f0f0;
+}
+
+/* ─── Swiper accent ──────────────────────────── */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #951620 !important;
+}
+.swiper-pagination-bullet-active {
+  background: #951620 !important;
+}
