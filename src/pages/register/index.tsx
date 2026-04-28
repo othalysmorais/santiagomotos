@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 
 import { auth } from '../../services/firebaseConnection'
-import { createUserWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth'
+import { createUserWithEmailAndPassword, updateProfile, signOut, sendEmailVerification } from 'firebase/auth'
 import { AuthContext } from '../../contexts/AuthContext'
 
 import toast from 'react-hot-toast'
@@ -39,18 +39,23 @@ export function Register() {
 
     async function onSubmit(data: FormData) {
         createUserWithEmailAndPassword(auth, data.email, data.password)
-            .then(async (user) => {
-                await updateProfile(user.user, { displayName: data.name })
+            .then(async (userCredential) => {
+                await updateProfile(userCredential.user, { displayName: data.name })
+
+                // FIX: envia e-mail de verificação ao criar conta
+                await sendEmailVerification(userCredential.user)
+
                 handleInfoUser({
                     name: data.name,
                     email: data.email,
-                    uid: user.user.uid
+                    uid: userCredential.user.uid
                 })
-                toast.success("Bem-vindo ao WebCarros!")
+
+                toast.success("Conta criada! Verifique seu e-mail antes de continuar.")
                 navigate('/dashboard', { replace: true })
             })
-            .catch((error) => {
-                console.log('Erro ao cadastrar', error)
+            .catch(() => {
+                // FIX: removido console.log que expunha detalhes internos do Firebase
                 toast.error('Erro ao criar conta. Tente novamente.')
             })
     }

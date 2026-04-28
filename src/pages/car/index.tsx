@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Container } from '../../components/container'
 import { FaWhatsapp } from "react-icons/fa"
 import { FiMapPin } from "react-icons/fi"
@@ -50,11 +50,23 @@ function StatItem({ icon, label, value }: StatItemProps) {
     )
 }
 
+// FIX: mascara o número para dificultar scraping automatizado
+function maskPhone(num: string | number): string {
+    const s = String(num).replace(/\D/g, '')
+    if (s.length < 10) return '***'
+    const ddd = s.slice(0, 2)
+    const last4 = s.slice(-4)
+    return `(${ddd}) ****-${last4}`
+}
+
 export function CarDetail() {
     const { id } = useParams()
     const [car, setCar] = useState<CarProps>()
+    const [phoneRevealed, setPhoneRevealed] = useState(false)
     const [sliderPerView, setSliderPerview] = useState<number>(2);
     const navigate = useNavigate()
+
+    const revealPhone = useCallback(() => setPhoneRevealed(true), [])
 
     useEffect(() => {
         async function loadCar() {
@@ -163,10 +175,24 @@ export function CarDetail() {
                     {/* Contato */}
                     <div className={`${card} p-5`}>
                         <h2 className="font-bold text-lg text-gray-900 dark:text-white mb-1">Telefone / WhatsApp</h2>
-                        <p className="text-gray-500 dark:text-zinc-400 text-sm mb-4">{car.whatsapp}</p>
+                        {/* FIX: número mascarado por padrão, revelado ao clicar */}
+                        <div className="flex items-center gap-3 mb-4">
+                            <p className="text-gray-500 dark:text-zinc-400 text-sm">
+                                {phoneRevealed ? car.whatsapp : maskPhone(car.whatsapp)}
+                            </p>
+                            {!phoneRevealed && (
+                                <button
+                                    onClick={revealPhone}
+                                    className="text-xs text-[#951620] hover:underline font-medium"
+                                >
+                                    Revelar número
+                                </button>
+                            )}
+                        </div>
                         <a
-                            href={`https://api.whatsapp.com/send?phone=${car.whatsapp}&text=Olá vi essa ${car.name} e fiquei interessado!`}
+                            href={`https://api.whatsapp.com/send?phone=${car.whatsapp}&text=Ol%C3%A1%2C+vi+essa+${encodeURIComponent(car.name)}+e+fiquei+interessado!`}
                             target="_blank"
+                            rel="noopener noreferrer"
                             className="bg-green-500 hover:bg-green-600 w-full text-white flex items-center justify-center gap-2 rounded-xl h-12 text-base font-semibold transition-colors"
                         >
                             Falar com o vendedor

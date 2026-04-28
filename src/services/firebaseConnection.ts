@@ -1,18 +1,16 @@
-
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBTAnrMEZdRWgXjGjeO0u-Sdz4Ysj9_0Qo",
-  authDomain: "webcarros-a671c.firebaseapp.com",
-  projectId: "webcarros-a671c",
-  storageBucket: "webcarros-a671c.firebasestorage.app",
-  messagingSenderId: "450265612761",
-  appId: "1:450265612761:web:478a1a99a097dcab3819c8"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
-
 
 const app = initializeApp(firebaseConfig);
 

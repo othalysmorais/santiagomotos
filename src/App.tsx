@@ -6,6 +6,7 @@ import { CarDetail } from './pages/car'
 import { Dashboard } from './pages/dashbord'
 import { New } from './pages/dashbord/new'
 import { EditCar } from './pages/dashbord/edit'
+import { NotFound } from './pages/notfound'
 
 import { Layout } from './components/layout'
 
@@ -44,5 +45,9 @@ export const router = createBrowserRouter([
   {
     path: '/register',
     element: <Register />
+  },
+  {
+    path: '*',
+    element: <NotFound />
   }
 ])

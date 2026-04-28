@@ -102,6 +102,13 @@ export function New() {
             return
         }
 
+        // FIX: limite de 5 MB por arquivo
+        const tooBig = files.filter(f => f.size > 5 * 1024 * 1024)
+        if (tooBig.length > 0) {
+            toast.error("Cada imagem deve ter no máximo 5 MB.")
+            return
+        }
+
         for (const file of files) {
             await handleUpload(file)
         }
@@ -154,9 +161,8 @@ export function New() {
                 setCarImages([]);
                 toast.success("Moto cadastrada com sucesso!");
             })
-            .catch((error) => {
+            .catch(() => {
                 toast.error("Erro ao cadastrar a moto");
-                console.error(error);
             });
     }
 
@@ -187,7 +193,7 @@ export function New() {
                                 <span className="text-xs text-gray-400">Adicionar foto</span>
                             </>
                         )}
-                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleFile} disabled={isUploading} />
+                        <input type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={handleFile} disabled={isUploading} />
                     </label>
 
                     {carImages.map(item => (

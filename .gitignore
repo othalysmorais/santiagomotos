@@ -1,3 +1,9 @@
+# Segurança — nunca versionar
+.env
+.env.local
+.env.production
+SECURITY.md
+
 # Logs
 logs
 *.log

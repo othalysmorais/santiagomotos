@@ -17,6 +17,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore"
 
 import toast from "react-hot-toast"
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
 const priceRegex = /^\d{1,3}(\.\d{3})*(,\d{2})$/
 
 const schema = z.object({
@@ -73,16 +74,22 @@ export function EditCar() {
     const [kmDisplay, setKmDisplay] = useState('')
     const [loading, setLoading] = useState(true)
 
-    /* Carregar dados existentes */
     useEffect(() => {
         async function loadCar() {
-            if (!id) return
+            if (!id || !user?.uid) return
             const docRef = doc(db, "cars", id)
             const snapshot = await getDoc(docRef)
 
-            if (!snapshot.data()) { navigate("/dashboard"); return }
+            if (!snapshot.exists()) { navigate("/dashboard"); return }
 
-            const data = snapshot.data()!
+            const data = snapshot.data()
+
+            // FIX: verifica se o anúncio pertence ao usuário logado
+            if (data.uid !== user.uid) {
+                toast.error("Você não tem permissão para editar este anúncio.")
+                navigate("/dashboard")
+                return
+            }
 
             reset({
                 name: data.name,
@@ -106,7 +113,7 @@ export function EditCar() {
             setLoading(false)
         }
         loadCar()
-    }, [id])
+    }, [id, user])
 
     function handlePriceChange(e: ChangeEvent<HTMLInputElement>) {
         const onlyDigits = e.target.value.replace(/\D/g, '')
@@ -125,8 +132,17 @@ export function EditCar() {
     async function handleFile(e: ChangeEvent<HTMLInputElement>) {
         const files = Array.from(e.target.files || [])
         if (files.length === 0) return
+
         const invalid = files.filter(f => f.type !== "image/jpeg" && f.type !== "image/png")
         if (invalid.length > 0) { toast.error("Use apenas JPEG ou PNG."); return }
+
+        // FIX: limite de tamanho de arquivo (5 MB)
+        const tooBig = files.filter(f => f.size > MAX_FILE_SIZE)
+        if (tooBig.length > 0) {
+            toast.error("Cada imagem deve ter no máximo 5 MB.")
+            return
+        }
+
         for (const file of files) await handleUpload(file)
     }
 
@@ -145,7 +161,6 @@ export function EditCar() {
     }
 
     async function handleDeleteImage(item: ImageItemProps) {
-        /* Só deleta do Storage se não for URL externa já salva */
         if (!item.previewUrl.startsWith('blob:')) {
             try {
                 const imageRef = ref(storage, `images/${user?.uid}/${item.name}`)
@@ -157,9 +172,17 @@ export function EditCar() {
 
     async function onSubmit(data: FormData) {
         if (carImages.length === 0) { toast.error("Envie pelo menos 1 imagem"); return }
-        if (!id) return
+        if (!id || !user?.uid) return
 
+        // FIX: dupla verificação de ownership antes de salvar
         const docRef = doc(db, "cars", id)
+        const snapshot = await getDoc(docRef)
+        if (!snapshot.exists() || snapshot.data().uid !== user.uid) {
+            toast.error("Operação não permitida.")
+            navigate("/dashboard")
+            return
+        }
+
         await updateDoc(docRef, {
             name: data.name.toUpperCase(),
             model: data.model,
@@ -191,7 +214,6 @@ export function EditCar() {
         <Container>
             <DashboardHeader />
 
-            {/* Fotos */}
             <div className="w-full bg-white dark:bg-[#1e1e1e] p-4 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm mb-4">
                 <p className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Fotos da moto</p>
                 <div className="flex flex-wrap items-center gap-3">
@@ -204,7 +226,7 @@ export function EditCar() {
                                 <span className="text-xs text-gray-400">Adicionar foto</span>
                             </>
                         )}
-                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleFile} disabled={isUploading} />
+                        <input type="file" accept="image/jpeg,image/png" multiple className="hidden" onChange={handleFile} disabled={isUploading} />
                     </label>
 
                     {carImages.map(item => (
@@ -220,9 +242,9 @@ export function EditCar() {
                         </div>
                     ))}
                 </div>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 mt-2">Máximo 5 MB por imagem. Apenas JPEG ou PNG.</p>
             </div>
 
-            {/* Formulário */}
             <div className="w-full bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-sm">
                 <p className="font-semibold text-gray-900 dark:text-gray-100 mb-5">Informações da moto</p>
                 <form className="w-full" onSubmit={handleSubmit(onSubmit)}>

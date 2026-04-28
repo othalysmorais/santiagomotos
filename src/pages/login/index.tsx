@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import LogoImg from '../../assets/logo.svg'
 import { Container } from '../../components/container'
 import { Link, useNavigate } from 'react-router-dom'
@@ -12,6 +12,9 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { auth } from '../../services/firebaseConnection'
 
 import toast from 'react-hot-toast'
+
+const MAX_ATTEMPTS = 5
+const BLOCK_SECONDS = 30
 
 const schema = z.object({
     email: z.string().email("Insira um email válido").nonempty("O campo é obrigatório"),
@@ -27,6 +30,11 @@ export function Login() {
         mode: "onChange"
     })
 
+    // FIX: proteção contra brute-force
+    const [attempts, setAttempts] = useState(0)
+    const [blockedUntil, setBlockedUntil] = useState<number | null>(null)
+    const [countdown, setCountdown] = useState(0)
+
     useEffect(() => {
         async function handleLogout() {
             await signOut(auth)
@@ -34,14 +42,44 @@ export function Login() {
         handleLogout();
     }, [])
 
+    useEffect(() => {
+        if (!blockedUntil) return
+        const interval = setInterval(() => {
+            const remaining = Math.ceil((blockedUntil - Date.now()) / 1000)
+            if (remaining <= 0) {
+                setBlockedUntil(null)
+                setCountdown(0)
+                setAttempts(0)
+            } else {
+                setCountdown(remaining)
+            }
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [blockedUntil])
+
+    const isBlocked = blockedUntil !== null && Date.now() < blockedUntil
+
     function onSubmit(data: FormData) {
+        if (isBlocked) {
+            toast.error(`Aguarde ${countdown} segundos para tentar novamente.`)
+            return
+        }
+
         signInWithEmailAndPassword(auth, data.email, data.password)
             .then(() => {
+                setAttempts(0)
                 toast.success("Login realizado com sucesso!")
                 navigate('/dashboard', { replace: true })
             })
             .catch(() => {
-                toast.error('Email ou senha incorretos')
+                const next = attempts + 1
+                setAttempts(next)
+                if (next >= MAX_ATTEMPTS) {
+                    setBlockedUntil(Date.now() + BLOCK_SECONDS * 1000)
+                    toast.error(`Muitas tentativas falhas. Aguarde ${BLOCK_SECONDS} segundos.`)
+                } else {
+                    toast.error(`Email ou senha incorretos. Tentativa ${next}/${MAX_ATTEMPTS}.`)
+                }
             })
     }
 
@@ -57,6 +95,12 @@ export function Login() {
                         <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-6">
                             Entrar na sua conta
                         </h1>
+
+                        {isBlocked && (
+                            <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-sm text-red-700 dark:text-red-400">
+                                Acesso bloqueado temporariamente. Tente novamente em <strong>{countdown}s</strong>.
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
                             <div>
@@ -87,9 +131,10 @@ export function Login() {
 
                             <button
                                 type="submit"
-                                className="w-full h-11 rounded-xl bg-[#951620] hover:bg-[#7a1018] text-white font-semibold transition-colors mt-2 cursor-pointer"
+                                disabled={isBlocked}
+                                className="w-full h-11 rounded-xl bg-[#951620] hover:bg-[#7a1018] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-colors mt-2 cursor-pointer"
                             >
-                                Entrar
+                                {isBlocked ? `Aguarde ${countdown}s` : 'Entrar'}
                             </button>
                         </form>
                     </div>
