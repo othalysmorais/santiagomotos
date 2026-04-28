@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import LogoImg from '../../assets/logo.svg'
+import LogoImg from '../../assets/logo.png'
 import { Container } from '../../components/container'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -87,7 +87,7 @@ export function Login() {
         <div className="min-h-screen bg-gray-100 dark:bg-[#141414] flex items-center justify-center px-4">
             <Container>
                 <div className="w-full flex justify-center items-center flex-col gap-4">
-                    <Link to="/" className="mb-2 w-40">
+                    <Link to="/" className="mb-2 w-45 bg-[#141414] rounded-3xl px-8 ">
                         <img className="w-full" src={LogoImg} alt="Logo WebCarros" />
                     </Link>
 
