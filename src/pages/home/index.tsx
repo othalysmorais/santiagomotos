@@ -291,19 +291,19 @@ export function Home() {
                             ))}
                         </div>
                     ) : displayedCars.length > 0 ? (
-                        <main className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                        <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                             {displayedCars.map(car => (
                                 <article
                                     key={car.id}
                                     className="bg-white dark:bg-[#1e1e1e] rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-200 group flex flex-col"
                                 >
-                                    <div className="relative w-full h-48 bg-gray-200 dark:bg-zinc-800 overflow-hidden shrink-0">
+                                    <div className="relative w-full h-52 sm:h-48 bg-gray-200 dark:bg-zinc-800 overflow-hidden shrink-0">
                                         <div
                                             className="w-full h-full bg-gray-200 dark:bg-zinc-800 animate-pulse"
                                             style={{ display: loadedImages.includes(car.id) ? "none" : "block" }}
                                         />
                                         <img
-                                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                                             src={car.images[0].url}
                                             alt={car.name}
                                             onLoad={() => setLoadedImages(prev => [...prev, car.id])}

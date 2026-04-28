@@ -18,25 +18,25 @@ export function Header() {
 
     /* Botões de ícone — sempre escuros, mesma aparência */
     const iconBtn =
-        'w-10 h-10 rounded-full bg-[#3d3d3d] dark:bg-[#1e1e1e] hover:bg-[#951620] border border-[#505050] dark:border-[#2d2d2d] flex items-center justify-center text-gray-200 transition-all duration-200 shrink-0';
+        'w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#3d3d3d] dark:bg-[#1e1e1e] hover:bg-[#951620] border border-[#505050] dark:border-[#2d2d2d] flex items-center justify-center text-gray-200 transition-all duration-200 shrink-0';
 
     return (
         /* Header sempre escuro — cor da logo */
         <div className="w-full sticky top-0 z-50 bg-[#2d2d2d] dark:bg-[#111111] border-b-2 border-[#951620] shadow-lg">
-            <header className="flex w-full max-w-7xl items-center gap-4 px-4 mx-auto h-16">
+            <header className="flex w-full max-w-7xl items-center gap-2 sm:gap-4 px-3 sm:px-4 mx-auto h-14 sm:h-16">
                 {/* Logo */}
                 <Link to="/" className="shrink-0">
-                    <img src={logo} alt="WebCarros" className="w-28 h-auto rounded-lg" />
+                    <img src={logo} alt="WebCarros" className="w-20 xs:w-24 sm:w-28 h-auto rounded-lg" />
                 </Link>
 
                 {/* Search */}
                 <form
                     onSubmit={handleSearch}
-                    className="flex flex-1 items-center gap-2 bg-[#3d3d3d] dark:bg-[#1a1a1a] rounded-xl px-3 h-10 border border-[#505050] dark:border-[#2a2a2a] focus-within:border-[#951620] transition-colors"
+                    className="flex flex-1 min-w-0 items-center gap-2 bg-[#3d3d3d] dark:bg-[#1a1a1a] rounded-xl px-2 sm:px-3 h-9 sm:h-10 border border-[#505050] dark:border-[#2a2a2a] focus-within:border-[#951620] transition-colors"
                 >
-                    <FiSearch size={16} className="text-gray-400 shrink-0" />
+                    <FiSearch size={15} className="text-gray-400 shrink-0" />
                     <input
-                        className="flex-1 bg-transparent outline-none text-sm text-gray-100 placeholder-gray-500"
+                        className="flex-1 min-w-0 bg-transparent outline-none text-xs sm:text-sm text-gray-100 placeholder-gray-500 truncate"
                         placeholder="Busque por marca ou modelo..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -45,7 +45,6 @@ export function Header() {
 
                 {/* Nav links */}
                 <nav className="hidden sm:flex items-center gap-1 shrink-0">
-                    
                     {!loadingAuth && signed && (
                         <Link
                             to="/dashboard/new"
@@ -57,19 +56,19 @@ export function Header() {
                 </nav>
 
                 {/* Icon buttons */}
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <button onClick={toggleTheme} className={iconBtn} aria-label="Alternar tema">
-                        {isDark ? <FiSun size={18} /> : <FiMoon size={18} />}
+                        {isDark ? <FiSun size={16} /> : <FiMoon size={16} />}
                     </button>
 
                     {!loadingAuth && signed && (
                         <Link to="/dashboard" className={iconBtn}>
-                            <FiUser size={18} />
+                            <FiUser size={16} />
                         </Link>
                     )}
                     {!loadingAuth && !signed && (
                         <Link to="/login" className={iconBtn}>
-                            <FiLogIn size={18} />
+                            <FiLogIn size={16} />
                         </Link>
                     )}
                 </div>
